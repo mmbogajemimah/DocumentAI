@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Summarize Text</title>
+</head>
+<body>
+    <h1>Summarize Text</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Summarize</button>
+    </form>
+    <a href="{% url 'upload_pdf' %}">Upload another PDF</a>
+</body>
+</html>
