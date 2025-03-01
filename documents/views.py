@@ -6,12 +6,24 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from sentence_transformers import SentenceTransformer
 import faiss
 import numpy as np
+from transformers import AutoModelForCausalLM, AutoTokenizer
+import torch
 
 # Initialize the FAISS index and embedding model
 EMBEDDING_MODEL = SentenceTransformer('all-MiniLM-L6-v2')  # Lightweight embedding model
 DIMENSION = 384  # Dimension of the embeddings
 faiss_index = faiss.IndexFlatL2(DIMENSION)  # FAISS index for storing embeddings
 chunk_data = []  # List to store chunk text and metadata
+
+# Load Llama 2 model and tokenizer
+MODEL_NAME = "meta-llama/Llama-2-3b-chat-hf"  # Use a smaller model
+tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+model = AutoModelForCausalLM.from_pretrained(
+    MODEL_NAME,
+    torch_dtype=torch.float16,
+    device_map="auto",
+    load_in_8bit=True,  # Quantize the model to 8-bit
+)
 
 def upload_pdf(request):
     global faiss_index, chunk_data
@@ -80,20 +92,6 @@ def search(request):
         form = SearchForm()
     return render(request, 'search.html', {'form': form})
 
-from transformers import AutoModelForCausalLM, AutoTokenizer
-import torch
-
-# Load Llama 2 model and tokenizer
-MODEL_NAME = "meta-llama/Llama-2-7b-chat-hf"  # Replace with the desired model size
-tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-model = AutoModelForCausalLM.from_pretrained(
-    MODEL_NAME,
-    torch_dtype=torch.float32,  # Use float32 for CPU
-)
-model.to("cpu")  # Explicitly move the model to the CPU
-
-print(model.device)  # Should print 'cpu'
-
 def generate_response(prompt, max_length=200):
     # Tokenize the input prompt
     inputs = tokenizer(prompt, return_tensors="pt").to(model.device)  # Move inputs to the model's device
@@ -109,7 +107,6 @@ def generate_response(prompt, max_length=200):
     # Decode the generated text
     response = tokenizer.decode(outputs[0], skip_special_tokens=True)
     return response
-
 
 def summarize_text(request):
     if request.method == 'POST':

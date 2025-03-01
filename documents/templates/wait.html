@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Processing</title>
+    <script>
+        function checkStatus(taskId) {
+            fetch(`/ask/status/${taskId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'SUCCESS') {
+                        window.location.href = `/ask/result/${taskId}/`;
+                    } else {
+                        setTimeout(() => checkStatus(taskId), 2000);  // Poll every 2 seconds
+                    }
+                });
+        }
+        window.onload = function() {
+            checkStatus("{{ task_id }}");
+        };
+    </script>
+</head>
+<body>
+    <h1>Processing your request...</h1>
+</body>
+</html>
