@@ -16,7 +16,7 @@ faiss_index = faiss.IndexFlatL2(DIMENSION)  # FAISS index for storing embeddings
 chunk_data = []  # List to store chunk text and metadata
 
 # Load Llama 2 model and tokenizer
-MODEL_NAME = "meta-llama/Llama-2-3b-chat-hf"  # Use a smaller model
+MODEL_NAME = "meta-llama/Llama-2-7b-chat-hf"  # Use a smaller model
 tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
 model = AutoModelForCausalLM.from_pretrained(
     MODEL_NAME,
