@@ -17,13 +17,16 @@ chunk_data = []  # List to store chunk text and metadata
 
 # Load Llama 2 model and tokenizer
 MODEL_NAME = "meta-llama/Llama-2-7b-chat-hf"  # Use a smaller model
-tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-model = AutoModelForCausalLM.from_pretrained(
-    MODEL_NAME,
-    torch_dtype=torch.float16,
-    device_map="auto",
-    load_in_8bit=True,  # Quantize the model to 8-bit
-)
+def get_tokenizer():
+    return AutoTokenizer.from_pretrained(MODEL_NAME)
+
+def get_model():
+    device = "cpu"  # Explicitly set to CPU
+    model = AutoModelForCausalLM.from_pretrained(
+        MODEL_NAME,
+        torch_dtype=torch.float16,
+    ).to(device)
+    return model
 
 def upload_pdf(request):
     global faiss_index, chunk_data
@@ -93,6 +96,8 @@ def search(request):
     return render(request, 'search.html', {'form': form})
 
 def generate_response(prompt, max_length=200):
+    tokenizer = get_tokenizer()
+    model = get_model()
     # Tokenize the input prompt
     inputs = tokenizer(prompt, return_tensors="pt").to(model.device)  # Move inputs to the model's device
     # Generate text using the model
